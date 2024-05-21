@@ -8,6 +8,7 @@ from kernel import Kernel
 class SVM_45_classes(object):
     def __init__(self,class_size=100,dataset='Mnist',C=1,iter=1000,tol=1e-2,types='linear',sigma=1,gamma=1,p=1,zeta=1) -> None:
         self.class_size,self.dataset=class_size,dataset
+        self.train_acc,self.test_acc=0,0
         self.C,self.iter,self.tol,self.types,self.sigma,self.gamma,self.p,self.zeta=C,iter,tol,types,sigma,gamma,p,zeta
         if dataset=='Mnist':
             self.data=Mnist(True)
@@ -48,6 +49,7 @@ class SVM_45_classes(object):
         
         final=np.argmax(predictions,axis=1)
         acc=(final==test_labels).sum()/np.shape(test_labels)[0]
+        self.test_acc=acc
         print(f"Test acc:{acc*100}%.")
 
 
@@ -71,6 +73,7 @@ class SVM_45_classes(object):
         
         final=np.argmax(predictions,axis=1)
         acc=(final==self.validate_labels).sum()/np.shape(self.validate_labels)[0]
+        self.train_acc=acc
         print(f"Train acc:{acc*100}%.")
                 
 
@@ -178,6 +181,7 @@ class SVM_10_classes(object):
         predictions=np.array(predictions)
         final=np.argmax(predictions,axis=0)
         acc=(final==self.train_labels[:train_size]).sum()/train_size
+        self.train_acc=acc
         print(f"Train acc:{acc*100}%")
     
     def test(self):
@@ -194,5 +198,6 @@ class SVM_10_classes(object):
         predictions=np.array(predictions)
         final=np.argmax(predictions,axis=0)
         acc=(final==self.test_labels[:test_size]).sum()/test_size
+        self.test_acc=acc
         print(f"Test acc:{acc*100}%")
             
