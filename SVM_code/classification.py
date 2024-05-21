@@ -131,3 +131,68 @@ class SVM_45_classes(object):
 
                 result=SMO(train_X,train_y,self.C,self.iter,self.tol,self.types,self.sigma,self.gamma,self.p,self.zeta)
                 self.res.append(result)
+
+class SVM_10_classes(object):
+    def __init__(self,train_size=1000,test_size=100,dataset='Mnist',C=1,iter=1000,tol=1e-2,types='linear',sigma=1,gamma=1,p=1,zeta=1) -> None:
+        self.dataset=dataset
+        self.train_size=train_size
+        self.test_size=test_size
+        self.C,self.iter,self.tol,self.types,self.sigma,self.gamma,self.p,self.zeta=C,iter,tol,types,sigma,gamma,p,zeta
+        if dataset=='Mnist':
+            self.data=Mnist(True)
+            self.train_data,self.train_labels=self.data.train_data['imgs'],self.data.train_data['labels']
+            self.test_data,self.test_labels=self.data.test_data['imgs'],self.data.test_data['labels']
+            self.dim=28*28
+        elif dataset=='Cifar10':
+            self.data=Cifar10()
+            self.train_data,self.train_labels=self.data.train_data['imgs'],self.data.train_data['labels']
+            self.test_data,self.test_labels=self.data.test_data['imgs'],self.data.test_data['labels']
+            self.dim=np.shape(self.train_data)[1]
+    
+        self.train()
+        self.test()
+    def train(self):
+        train_size=self.train_size
+        train_data=self.train_data[:train_size].reshape(-1,self.dim)
+        train_labels=self.train_labels[:train_size]
+        self.res=[]
+        
+        for i in range(10):
+            modified_labels=[]
+            print(f"training {i} against all...")
+            for count in range(train_size):
+                if train_labels[count]!=i:
+                    modified_labels.append(-1)
+                else:
+                    modified_labels.append(1)
+            
+            modified_labels=np.array(modified_labels,dtype=np.int64).reshape(1,-1)
+            result=SMO(train_data,modified_labels,self.C,self.iter,self.tol,self.types,self.sigma,self.gamma,self.p,self.zeta)
+            self.res.append(result)
+        
+        predictions=[]
+        for i in range(10):
+            Support_vector=self.res[i]
+            pred=Support_vector.blocks @ Support_vector.K + Support_vector.bias
+            predictions.append(pred)
+        predictions=np.array(predictions)
+        final=np.argmax(predictions,axis=0)
+        acc=(final==self.train_labels[:train_size]).sum()/train_size
+        print(f"Train acc:{acc*100}%")
+    
+    def test(self):
+        test_size=self.test_size
+        test_data=self.test_data[:test_size].reshape(-1,self.dim)
+        test_labels=self.test_labels[:test_size]
+        predictions=[]
+        Ker=Kernel(self.train_data[:self.train_size].reshape(-1,self.dim),test_data,self.types,self.sigma,self.gamma,self.p,self.zeta).K
+        for i in range(10):
+            Support_vector=self.res[i]
+            pred=Support_vector.blocks @ Ker + Support_vector.bias
+            predictions.append(pred)
+        
+        predictions=np.array(predictions)
+        final=np.argmax(predictions,axis=0)
+        acc=(final==self.test_labels[:test_size]).sum()/test_size
+        print(f"Test acc:{acc*100}%")
+            
